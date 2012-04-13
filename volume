@@ -41,6 +41,12 @@ get-volume() {
 	amixer get Master,0 | tail -n 1 | sed -e 's/[]].*//' -e 's/.*[[]//' -e 's/%//'
 }
 
+get-muted() {
+	if [[ $(amixer get Master,0 | tail -n 1 | sed -e 's/.*[[]//' -e 's/[]].*//') = "off" ]]; then
+		echo "[muted]"
+	fi
+}
+
 notify-volume() {
 	BAR=""
 	CNT=0
@@ -59,10 +65,40 @@ notify-volume() {
 		CNT=$(($CNT+1))
 	done
 
-	notify-send -t 500 Volume: [$BAR]
+	if [[ -z $(get-muted) ]]; then
+		notify-send -t 500 "Volume:" [$BAR]
+	else
+		notify-send -t 500 "Volume [muted]:" [$BAR]
+	fi
+}
+
+notify-cmus() {
+	STATUS=$(cmus-remote -Q 2> /dev/null)
+	ARTIST=$(echo "$STATUS" | grep "^tag artist " | cut -d " " -f 3-)
+	TITLE=$(echo "$STATUS" | grep "^tag title " | cut -d " " -f 3-)
+	FILE=$(echo "$STATUS" | grep "^file " | cut -d " " -f 2- | sed 's,.*/,,')
+	if [[ -z $TITLE && -z $ARTIST ]]; then
+		notify-send -t 1500 "Playing;" "$FILE"
+	elif [[ -z $TITLE && -n $ARTIST ]]; then
+		notify-send -t 1500 "Playing;" "$ARTIST - $FILE"
+	else
+		notify-send -t 1500 "Playing;" "$ARTIST - $TITLE"
+	fi
 }
 
 case $1 in
+	previous)
+		cmus-remote -r
+		notify-cmus
+		;;
+	play-pause)
+		cmus-remote -u
+		notify-cmus
+		;;
+	next)
+		cmus-remote -n
+		notify-cmus
+		;;
 	up)
 		amixer set Master,0 $(($(get-volume)+$VOLUME_STEP))% unmute > /dev/null
 		notify-volume
@@ -72,13 +108,25 @@ case $1 in
 		notify-volume
 		;;
 	mute)
-		amixer set Master,0 0 mute > /dev/null
+		amixer set Master mute > /dev/null
+		notify-volume
+		;;
+	unmute)
+		amixer set Master unmute > /dev/null
+		notify-volume
+		;;
+	toggle-mute)
+		if [[ -z $(get-muted) ]]; then
+			amixer set Master unmute > /dev/null
+		else
+			amixer set Master mute > /dev/null
+		fi
 		notify-volume
 		;;
 	get)
-		echo "Volume: $(get-volume)%"
+		echo "Volume: $(get-volume)% $(get-muted)"
 		;;
 	*)
-		echo "Usage: $0 [ up | down | mute | get ]"
+		echo "Usage: $0 [ previous | play-pause | next |  up | down | mute | unmute | toggle-mute | get ]"
 		;;
 esac
