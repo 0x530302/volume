@@ -77,13 +77,15 @@ notify-cmus() {
 	ARTIST=$(echo "$STATUS" | grep "^tag artist " | cut -d " " -f 3-)
 	TITLE=$(echo "$STATUS" | grep "^tag title " | cut -d " " -f 3-)
 	FILE=$(echo "$STATUS" | grep "^file " | cut -d " " -f 2- | sed 's,.*/,,')
+	STATUS=$(echo "$STATUS" | grep "^status " | cut -d " " -f 1-)
 	if [[ -z $TITLE && -z $ARTIST ]]; then
-		notify-send -t 1500 "Playing;" "$FILE"
+		INFO=$FILE
 	elif [[ -z $TITLE && -n $ARTIST ]]; then
-		notify-send -t 1500 "Playing;" "$ARTIST - $FILE"
+		INFO="$ARTIST - $FILE"
 	else
-		notify-send -t 1500 "Playing;" "$ARTIST - $TITLE"
+		INFO="$ARTIST - $TITLE"
 	fi
+	notify-send -t 1500 "Current Song ($STATUS);" "$INFO"
 }
 
 case $1 in
