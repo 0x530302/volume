@@ -5,13 +5,15 @@ Access and control your volume easily via Terminal or Hotkey.
 ## Installation
 
 Just make youstream executable and place it somewhere within your $PATH.
+
 For example:
+
 	$ chmod +x youstream
 	# mv youstream /usr/local/bin/youstream
 
 ## Usage
 
-	$ volume [ previos | play-pause | next | up | down | mute | unmute | toggle-mute | get ]
+	$ volume [ previous | play-pause | next | up | down | mute | unmute | toggle-mute | get ]
 
 ## Configuration
 
@@ -31,6 +33,7 @@ Edit the script for personal preferences.
 
 ### awesome
 Add the following lines to your rc.lua to use your multimedia keys as hotkeys for volume:
+
 	awful.key({},     "XF86AudioPrev",        function () awful.util.spawn("volume previous") end),
 	awful.key({},     "XF86AudioPlay",        function () awful.util.spawn("volume play-pause") end),
 	awful.key({},     "XF86AudioNext",        function () awful.util.spawn("volume next") end),
